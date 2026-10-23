@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue/offline'
 import { useQueryClient } from '@tanstack/vue-query'
-import { ToggleGroupItem, ToggleGroupRoot, TooltipProvider } from 'reka-ui'
+import { TooltipProvider } from 'reka-ui'
 import WeatherDetails from './WeatherDetails.vue'
 import WeatherForecast from './WeatherForecast.vue'
 import WeatherForm from './WeatherForm.vue'
@@ -50,6 +50,10 @@ watch(
 
 watch(refresh, (value) => {
   localStorage.setItem(REFRESH_KEY, value)
+})
+
+watch(unit, (value) => {
+  localStorage.setItem(UNIT_KEY, value)
 })
 
 watch(
@@ -113,12 +117,6 @@ function readUnit() {
   return localStorage.getItem(UNIT_KEY) === 'fahrenheit' ? 'fahrenheit' : 'celsius'
 }
 
-function onUnitUpdate(value) {
-  if (value !== 'celsius' && value !== 'fahrenheit') return
-  unit.value = value
-  localStorage.setItem(UNIT_KEY, value)
-}
-
 function reload() {
   forecast.refetch()
 }
@@ -171,29 +169,7 @@ function useMyLocation() {
           <p class="min-w-0 text-xs tracking-[0.22em] text-[var(--muted)] uppercase">
             DAlina Погода
           </p>
-          <div class="flex shrink-0 items-center gap-2">
-            <ToggleGroupRoot
-              :model-value="unit"
-              type="single"
-              class="flex rounded-full border border-[var(--line)] bg-[var(--glass)] p-1 backdrop-blur-md"
-              aria-label="Единица температуры"
-              @update:model-value="onUnitUpdate"
-            >
-              <ToggleGroupItem
-                value="celsius"
-                class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
-              >
-                °C
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="fahrenheit"
-                class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
-              >
-                °F
-              </ToggleGroupItem>
-            </ToggleGroupRoot>
-            <WeatherSettings v-model="refresh" />
-          </div>
+          <WeatherSettings v-model="refresh" v-model:unit="unit" />
         </header>
 
         <WeatherForm
