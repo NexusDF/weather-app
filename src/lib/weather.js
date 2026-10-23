@@ -113,32 +113,6 @@ export function formatClock(iso) {
   return (iso.split('T')[1] ?? '').slice(0, 5)
 }
 
-export function formatDayLabel(iso, index) {
-  if (index === 0) return 'Сегодня'
-  if (index === 1) return 'Завтра'
-  const [year, month, day] = iso.slice(0, 10).split('-').map(Number)
-  const date = new Date(Date.UTC(year, month - 1, day))
-  const label = new Intl.DateTimeFormat('ru-RU', {
-    weekday: 'short',
-    timeZone: 'UTC',
-  })
-    .format(date)
-    .replace('.', '')
-  return label.charAt(0).toUpperCase() + label.slice(1)
-}
-
-export function formatDayMonth(iso) {
-  const [year, month, day] = iso.slice(0, 10).split('-').map(Number)
-  const date = new Date(Date.UTC(year, month - 1, day))
-  return new Intl.DateTimeFormat('ru-RU', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  })
-    .format(date)
-    .replace('.', '')
-}
-
 export function windDirection(degrees) {
   if (typeof degrees !== 'number' || Number.isNaN(degrees)) return ''
   const index = Math.round(degrees / 45) % 8

@@ -239,6 +239,7 @@ function useMyLocation() {
           <WeatherTemperature
             :place="place"
             :current="weather.current"
+            :tomorrow="weather.daily[1]"
             :unit="unit"
             :refreshing="refreshing"
           />

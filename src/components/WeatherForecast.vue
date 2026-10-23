@@ -1,21 +1,7 @@
 <script setup>
-import {
-  TabsContent,
-  TabsIndicator,
-  TabsList,
-  TabsRoot,
-  TabsTrigger,
-  ProgressIndicator,
-  ProgressRoot,
-} from 'reka-ui'
+import { TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import WeatherIcon from './WeatherIcon.vue'
-import {
-  describeWeather,
-  formatClock,
-  formatDayLabel,
-  formatDayMonth,
-  formatTemp,
-} from '@/lib/weather'
+import { formatClock, formatTemp } from '@/lib/weather'
 
 defineProps({
   hourly: {
@@ -41,8 +27,20 @@ function hourLabel(time, index, currentTime) {
   return formatClock(time)
 }
 
-function precipLabel(value) {
-  return `Вероятность осадков ${Math.round(value ?? 0)} процентов`
+function dayNumber(iso) {
+  return Number(iso.slice(8, 10))
+}
+
+function weekdayShort(iso) {
+  const [year, month, day] = iso.slice(0, 10).split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day))
+  const label = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'short',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace('.', '')
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }
 </script>
 
@@ -100,46 +98,29 @@ function precipLabel(value) {
         </div>
       </TabsContent>
 
-      <TabsContent value="daily" class="pt-2 outline-none">
-        <ol>
+      <TabsContent value="daily" class="pt-4 outline-none">
+        <ol class="grid grid-cols-7">
           <li
             v-for="(day, index) in daily"
             :key="day.time"
-            class="grid grid-cols-[4.6rem_1.75rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-3 last:border-b-0"
+            class="flex min-w-0 flex-col items-center gap-1.5"
           >
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium">{{ formatDayLabel(day.time, index) }}</p>
-              <p class="text-xs text-[var(--muted)]">{{ formatDayMonth(day.time) }}</p>
-            </div>
-            <WeatherIcon :code="day.weatherCode" :is-day="true" class="size-7" />
-            <div class="min-w-0">
-              <p class="truncate text-xs text-[var(--muted)]">
-                {{ describeWeather(day.weatherCode) }}
-              </p>
-              <div class="mt-1.5 flex items-center gap-2">
-                <ProgressRoot
-                  class="relative h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[var(--pill)]"
-                  :model-value="Math.max(0, Math.min(100, day.precipitationProbability || 0))"
-                  :get-value-label="precipLabel"
-                >
-                  <ProgressIndicator
-                    class="h-full rounded-full bg-[var(--ink)]"
-                    :style="{
-                      width: `${Math.max(0, Math.min(100, day.precipitationProbability || 0))}%`,
-                    }"
-                  />
-                </ProgressRoot>
-                <span class="w-8 shrink-0 text-right text-xs tabular-nums text-[var(--muted)]">
-                  {{ Math.round(day.precipitationProbability || 0) }}%
-                </span>
-              </div>
-            </div>
-            <p
-              class="flex items-baseline justify-end gap-1.5 text-sm whitespace-nowrap tabular-nums"
+            <span class="text-[11px] leading-none text-[var(--muted)]">{{
+              weekdayShort(day.time)
+            }}</span>
+            <span
+              class="flex size-7 items-center justify-center rounded-full text-sm leading-none font-medium tabular-nums"
+              :class="index === 0 ? 'bg-[var(--fill)] text-[var(--fill-ink)]' : ''"
             >
-              <span class="text-[var(--muted)]">{{ formatTemp(day.temperatureMin, unit) }}</span>
-              <span class="font-medium">{{ formatTemp(day.temperatureMax, unit) }}</span>
-            </p>
+              {{ dayNumber(day.time) }}
+            </span>
+            <WeatherIcon :code="day.weatherCode" :is-day="true" class="size-6" />
+            <span class="text-sm leading-none font-medium tabular-nums">
+              <span class="sr-only">Днём </span>{{ formatTemp(day.temperatureMax, unit) }}
+            </span>
+            <span class="text-xs leading-none tabular-nums text-[var(--muted)]">
+              <span class="sr-only">Ночью </span>{{ formatTemp(day.temperatureMin, unit) }}
+            </span>
           </li>
         </ol>
       </TabsContent>
