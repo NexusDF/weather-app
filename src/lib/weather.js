@@ -80,6 +80,28 @@ export function sceneOf(code, isDay) {
   return `cloudy-${phase}`
 }
 
+const THEME_COLOR = {
+  'clear-day': '#1c6eae',
+  'clear-night': '#0b1026',
+  'partly-day': '#3d7eae',
+  'partly-night': '#12182b',
+  'cloudy-day': '#5d7388',
+  'cloudy-night': '#161d27',
+  'rain-day': '#4d6474',
+  'rain-night': '#101820',
+  thunder: '#1a1030',
+  snow: '#eef5fb',
+  fog: '#e4eaee',
+}
+
+export function themeColor(scene) {
+  return THEME_COLOR[scene] ?? '#102033'
+}
+
+export function themeScheme(scene) {
+  return scene === 'snow' || scene === 'fog' ? 'light' : 'dark'
+}
+
 export function formatTemp(value, unit) {
   if (typeof value !== 'number' || Number.isNaN(value)) return '—'
   const degrees = unit === 'fahrenheit' ? (value * 9) / 5 + 32 : value

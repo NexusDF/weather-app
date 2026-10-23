@@ -10,7 +10,7 @@ import WeatherSettings from './WeatherSettings.vue'
 import WeatherTemperature from './WeatherTemperature.vue'
 import { citySearchOptions, reversePlaceOptions, useForecast } from '@/lib/queries'
 import { REFRESH_KEY, readRefresh } from '@/lib/refresh'
-import { MOSCOW_PLACE, sceneOf } from '@/lib/weather'
+import { MOSCOW_PLACE, sceneOf, themeColor, themeScheme } from '@/lib/weather'
 
 const PLACE_KEY = 'vue-weather:place'
 const UNIT_KEY = 'vue-weather:unit'
@@ -50,6 +50,23 @@ watch(
 watch(refresh, (value) => {
   localStorage.setItem(REFRESH_KEY, value)
 })
+
+watch(
+  scene,
+  (value) => {
+    const color = themeColor(value)
+    const current = document.querySelector('meta[name="theme-color"]')
+    if (current?.getAttribute('content') !== color) {
+      current?.remove()
+      const meta = document.createElement('meta')
+      meta.setAttribute('name', 'theme-color')
+      meta.setAttribute('content', color)
+      document.head.append(meta)
+    }
+    document.documentElement.style.colorScheme = themeScheme(value)
+  },
+  { immediate: true },
+)
 
 watch(
   place,

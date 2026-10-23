@@ -26,7 +26,7 @@ export default defineConfig(({ command }) => ({
         lang: 'ru',
         dir: 'ltr',
         categories: ['weather'],
-        theme_color: '#1c6eae',
+        theme_color: '#102033',
         background_color: '#102033',
         display: 'standalone',
         icons: [
