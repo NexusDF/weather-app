@@ -10,6 +10,8 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@iconify-icons/lucide": "^2.0.23",
+    "@iconify/vue": "^5.0.4",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/vue-query": "^5.104.5",
     "reka-ui": "^2.11.0",

@@ -1,6 +1,15 @@
 <script setup>
+import { Icon } from '@iconify/vue/offline'
 import { TooltipArrow, TooltipContent, TooltipPortal, TooltipRoot, TooltipTrigger } from 'reka-ui'
-import MetricIcon from './MetricIcon.vue'
+
+const ICONS = {
+  humidity: 'lucide:droplets',
+  wind: 'lucide:wind',
+  pressure: 'lucide:gauge',
+  cloud: 'lucide:cloud',
+  precipitation: 'lucide:cloud-rain',
+  uv: 'lucide:sun',
+}
 
 defineProps({
   icon: {
@@ -29,7 +38,7 @@ defineProps({
       class="flex cursor-help flex-col gap-1 rounded-2xl border border-[var(--line)] bg-[var(--glass)] px-3 py-3 text-left backdrop-blur-md"
     >
       <span class="flex items-center gap-1.5 text-xs text-[var(--muted)]">
-        <MetricIcon :name="icon" class="size-4" />
+        <Icon :icon="ICONS[icon]" class="block size-4 shrink-0" />
         {{ label }}
       </span>
       <span class="text-base font-medium tabular-nums">{{ value }}</span>

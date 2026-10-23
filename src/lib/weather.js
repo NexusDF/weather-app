@@ -322,6 +322,7 @@ export async function fetchForecast(latitude, longitude, signal) {
       sunrise: today?.sunrise ?? '',
       sunset: today?.sunset ?? '',
       uvIndex: today?.uvIndex ?? null,
+      utcOffsetSeconds: data.utc_offset_seconds ?? 0,
     },
     hourly: upcomingHours(data.hourly, data.current.time),
     daily,

@@ -17,6 +17,7 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from 'reka-ui'
+import { Icon } from '@iconify/vue/offline'
 import { REFRESH_OPTIONS } from '@/lib/refresh'
 
 const refresh = defineModel({ type: String, required: true })
@@ -30,21 +31,7 @@ const refresh = defineModel({ type: String, required: true })
           class="grid size-9 place-items-center rounded-full border border-[var(--line)] bg-[var(--glass)] text-[var(--ink)] backdrop-blur-md transition hover:bg-[var(--pill)]"
           aria-label="Настройки"
         >
-          <svg
-            class="size-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-            />
-          </svg>
+          <Icon icon="lucide:settings" class="size-5" />
         </DialogTrigger>
       </TooltipTrigger>
       <TooltipPortal>
@@ -75,17 +62,7 @@ const refresh = defineModel({ type: String, required: true })
             class="grid size-8 shrink-0 place-items-center rounded-full text-slate-500 hover:bg-slate-100"
             aria-label="Закрыть"
           >
-            <svg
-              class="size-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
+            <Icon icon="lucide:x" class="size-4" />
           </DialogClose>
         </div>
 

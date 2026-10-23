@@ -11,6 +11,7 @@ import {
   ComboboxRoot,
   ComboboxViewport,
 } from 'reka-ui'
+import { Icon } from '@iconify/vue/offline'
 import { useCitySearch } from '@/lib/queries'
 import { placeLabel, placeSubtitle } from '@/lib/weather'
 
@@ -127,18 +128,7 @@ onUnmounted(() => {
         <ComboboxAnchor
           class="flex items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--glass)] px-3 shadow-sm backdrop-blur-md focus-within:ring-2 focus-within:ring-[var(--ink)]/30"
         >
-          <svg
-            class="size-5 shrink-0 text-[var(--muted)]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="m16 16.5 4.5 4.5" />
-          </svg>
+          <Icon icon="lucide:search" class="size-5 shrink-0 text-[var(--muted)]" />
           <ComboboxInput
             id="city-search"
             v-model="query"
@@ -192,34 +182,8 @@ onUnmounted(() => {
         aria-label="Погода рядом со мной"
         @click="emit('locate')"
       >
-        <svg
-          v-if="locating"
-          class="size-5 motion-safe:animate-spin"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" opacity="0.3" />
-          <path
-            d="M12 4a8 8 0 0 1 8 8"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
-        <svg
-          v-else
-          class="size-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.75"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="3.25" />
-          <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2" />
-        </svg>
+        <Icon v-if="locating" icon="lucide:loader-circle" class="size-5 motion-safe:animate-spin" />
+        <Icon v-else icon="lucide:locate" class="size-5" />
       </button>
     </div>
     <p v-if="locateError" class="text-sm">{{ locateError }}</p>

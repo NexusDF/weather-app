@@ -1,4 +1,5 @@
 <script setup>
+import SunPath from './SunPath.vue'
 import WeatherIcon from './WeatherIcon.vue'
 import { describeWeather, formatClock, formatTemp, placeSubtitle } from '@/lib/weather'
 
@@ -44,8 +45,13 @@ const subtitle = () => placeSubtitle(props.place)
       <span v-if="formatClock(current.time)"> · обновлено в {{ formatClock(current.time) }}</span>
       <span v-if="refreshing"> · обновляем</span>
     </p>
-    <p v-if="current.sunrise && current.sunset" class="mt-1 text-sm text-[var(--muted)]">
-      Восход {{ formatClock(current.sunrise) }} · закат {{ formatClock(current.sunset) }}
-    </p>
   </section>
+  <SunPath
+    v-if="current.sunrise && current.sunset"
+    class="mt-5"
+    :sunrise="current.sunrise"
+    :sunset="current.sunset"
+    :time="current.time"
+    :utc-offset-seconds="current.utcOffsetSeconds"
+  />
 </template>
