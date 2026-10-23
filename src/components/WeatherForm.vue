@@ -87,6 +87,12 @@ function canSearch(value) {
   return term.length >= 2 && term !== label
 }
 
+function selectInputText(event) {
+  const input = event.target
+  if (!(input instanceof HTMLInputElement)) return
+  input.select()
+}
+
 watch(query, (value) => {
   window.clearTimeout(timer)
   const term = value.trim()
@@ -126,9 +132,13 @@ onUnmounted(() => {
       >
         <ComboboxLabel for="city-search" class="sr-only">Город</ComboboxLabel>
         <ComboboxAnchor
-          class="flex items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--glass)] px-3 shadow-sm backdrop-blur-md focus-within:ring-2 focus-within:ring-[var(--ink)]/30"
+          class="relative flex items-center gap-2 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--glass)] px-3 shadow-sm backdrop-blur-md transition-[box-shadow,background-color] duration-200 focus-within:ring-2 focus-within:ring-[var(--ink)]/30"
         >
-          <Icon icon="lucide:search" class="size-5 shrink-0 text-[var(--muted)]" />
+          <Icon
+            icon="lucide:search"
+            class="size-5 shrink-0 text-[var(--muted)]"
+            :class="{ 'search-glyph': searching }"
+          />
           <ComboboxInput
             id="city-search"
             v-model="query"
@@ -136,7 +146,10 @@ onUnmounted(() => {
             placeholder="Найти город"
             spellcheck="false"
             class="h-12 w-full bg-transparent text-base text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
+            @focus="selectInputText"
+            @click="selectInputText"
           />
+          <span v-if="searching" class="search-line" aria-hidden="true" />
         </ComboboxAnchor>
 
         <ComboboxPortal>
@@ -144,32 +157,40 @@ onUnmounted(() => {
             position="popper"
             align="start"
             :side-offset="8"
-            class="z-50 max-h-80 w-(--reka-combobox-trigger-width) overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl"
+            class="menu-pop z-50 max-h-80 w-(--reka-combobox-trigger-width) overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl"
           >
-            <ComboboxViewport class="max-h-80 overflow-y-auto p-1">
-              <p v-if="searching && !cities.length" class="px-3 py-3 text-sm text-slate-500">
-                Ищем города…
-              </p>
-              <p v-else-if="searchError" class="px-3 py-3 text-sm text-slate-500">
-                {{ searchError }}
-              </p>
-              <template v-else>
-                <ComboboxEmpty class="px-3 py-6 text-center text-sm text-slate-500">
-                  Такого города нет
-                </ComboboxEmpty>
-                <ComboboxItem
-                  v-for="city in cities"
-                  :key="city.id"
-                  :value="city"
-                  :text-value="placeLabel(city)"
-                  class="flex cursor-pointer flex-col rounded-xl px-3 py-2 outline-none data-[highlighted]:bg-sky-50"
+            <ComboboxViewport class="menu-pop-body max-h-80 overflow-y-auto p-1">
+              <Transition name="swap" mode="out-in">
+                <p
+                  v-if="searching && !cities.length"
+                  key="searching"
+                  class="flex items-center px-3 py-3 text-sm text-slate-500"
                 >
-                  <span class="truncate font-medium">{{ city.name }}</span>
-                  <span class="truncate text-sm text-slate-500">{{
-                    placeSubtitle(city) || city.country
-                  }}</span>
-                </ComboboxItem>
-              </template>
+                  Ищем города
+                  <span class="search-dots" aria-hidden="true"><span /><span /><span /></span>
+                </p>
+                <p v-else-if="searchError" key="error" class="px-3 py-3 text-sm text-slate-500">
+                  {{ searchError }}
+                </p>
+                <div v-else :key="submittedTerm || 'results'">
+                  <ComboboxEmpty class="px-3 py-6 text-center text-sm text-slate-500">
+                    Такого города нет
+                  </ComboboxEmpty>
+                  <ComboboxItem
+                    v-for="(city, index) in cities"
+                    :key="city.id"
+                    :value="city"
+                    :text-value="placeLabel(city)"
+                    class="search-item flex cursor-pointer flex-col rounded-xl px-3 py-2 outline-none transition-colors duration-150 data-[highlighted]:bg-sky-50"
+                    :style="{ '--i': index }"
+                  >
+                    <span class="truncate font-medium">{{ city.name }}</span>
+                    <span class="truncate text-sm text-slate-500">{{
+                      placeSubtitle(city) || city.country
+                    }}</span>
+                  </ComboboxItem>
+                </div>
+              </Transition>
             </ComboboxViewport>
           </ComboboxContent>
         </ComboboxPortal>
@@ -186,6 +207,8 @@ onUnmounted(() => {
         <Icon v-else icon="lucide:locate" class="size-5" />
       </button>
     </div>
-    <p v-if="locateError" class="text-sm">{{ locateError }}</p>
+    <Transition name="swap">
+      <p v-if="locateError" class="text-sm">{{ locateError }}</p>
+    </Transition>
   </div>
 </template>

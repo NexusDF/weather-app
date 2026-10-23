@@ -47,7 +47,9 @@ const subtitle = () => placeSubtitle(props.place)
     <p class="mt-4 text-sm text-[var(--muted)]">
       Ощущается как {{ formatTemp(current.apparentTemperature, unit) }}
       <span v-if="formatClock(current.time)"> · обновлено в {{ formatClock(current.time) }}</span>
-      <span v-if="refreshing"> · обновляем</span>
+      <Transition name="swap">
+        <span v-if="refreshing"> · обновляем</span>
+      </Transition>
     </p>
 
     <div
@@ -75,7 +77,7 @@ const subtitle = () => placeSubtitle(props.place)
     </div>
     <SunPath
       v-if="current.sunrise && current.sunset"
-      class="mt-2"
+      class="mt-5"
       :sunrise="current.sunrise"
       :sunset="current.sunset"
       :time="current.time"

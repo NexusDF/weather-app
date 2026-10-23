@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import {
   DialogClose,
   DialogContent,
@@ -21,17 +22,22 @@ import { Icon } from '@iconify/vue/offline'
 import { REFRESH_OPTIONS } from '@/lib/refresh'
 
 const refresh = defineModel({ type: String, required: true })
+const open = ref(false)
 </script>
 
 <template>
-  <DialogRoot>
+  <DialogRoot v-model:open="open">
     <TooltipRoot>
       <TooltipTrigger as-child>
         <DialogTrigger
           class="grid size-9 place-items-center rounded-full border border-[var(--line)] bg-[var(--glass)] text-[var(--ink)] backdrop-blur-md transition hover:bg-[var(--pill)]"
           aria-label="Настройки"
         >
-          <Icon icon="lucide:settings" class="size-5" />
+          <Icon
+            icon="lucide:settings"
+            class="size-5 transition duration-500 ease-out"
+            :class="open ? 'rotate-90' : 'rotate-0'"
+          />
         </DialogTrigger>
       </TooltipTrigger>
       <TooltipPortal>
@@ -47,9 +53,9 @@ const refresh = defineModel({ type: String, required: true })
     </TooltipRoot>
 
     <DialogPortal>
-      <DialogOverlay class="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-sm" />
+      <DialogOverlay class="dialog-overlay fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-sm" />
       <DialogContent
-        class="fixed top-1/2 left-1/2 z-[60] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl outline-none"
+        class="dialog-panel fixed top-1/2 left-1/2 z-[60] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl outline-none"
       >
         <div class="flex items-start justify-between gap-3">
           <div>
@@ -76,13 +82,13 @@ const refresh = defineModel({ type: String, required: true })
             v-for="option in REFRESH_OPTIONS"
             :key="option.value"
             :value="option.value"
-            class="flex items-center gap-3 rounded-2xl border border-slate-200 px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-sky-700/40 data-[state=checked]:border-sky-700 data-[state=checked]:bg-sky-50"
+            class="flex items-center gap-3 rounded-2xl border border-slate-200 px-3 py-3 text-left outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-700/40 data-[state=checked]:border-sky-700 data-[state=checked]:bg-sky-50"
           >
             <span
               class="grid size-4 shrink-0 place-items-center rounded-full border border-slate-300"
               aria-hidden="true"
             >
-              <RadioGroupIndicator class="size-2 rounded-full bg-sky-700" />
+              <RadioGroupIndicator class="choice-dot size-2 rounded-full bg-sky-700" />
             </span>
             <span class="min-w-0">
               <span class="block text-sm font-medium">{{ option.label }}</span>

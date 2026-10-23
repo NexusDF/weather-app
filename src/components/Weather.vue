@@ -32,6 +32,7 @@ const scene = computed(() => {
 })
 
 const refreshing = computed(() => Boolean(weather.value) && forecast.isFetching.value)
+const showProgress = computed(() => locating.value || forecast.isFetching.value)
 const initialLoading = computed(
   () => Boolean(place.value) && !weather.value && forecast.isFetching.value,
 )
@@ -164,6 +165,7 @@ function useMyLocation() {
 <template>
   <TooltipProvider :delay-duration="250">
     <div class="scene min-h-dvh" :data-scene="scene">
+      <div class="fetch-bar" :class="{ 'is-on': showProgress }" aria-hidden="true" />
       <div class="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-8 px-4 py-6 sm:py-10">
         <header class="flex items-center justify-between gap-3">
           <p class="min-w-0 text-xs tracking-[0.22em] text-[var(--muted)] uppercase">
@@ -201,62 +203,60 @@ function useMyLocation() {
           @locate="useMyLocation"
         />
 
-        <div v-if="initialLoading" class="flex flex-col gap-4">
-          <p class="sr-only">Загружаем прогноз</p>
-          <div
-            class="h-36 animate-pulse rounded-3xl bg-[var(--glass)] motion-reduce:animate-none"
-            aria-hidden="true"
-          />
-          <div class="grid grid-cols-3 gap-2" aria-hidden="true">
-            <div
-              v-for="item in 6"
-              :key="item"
-              class="h-16 animate-pulse rounded-2xl bg-[var(--glass)] motion-reduce:animate-none"
-            />
+        <Transition name="panel" mode="out-in">
+          <div v-if="initialLoading" key="loading" class="flex flex-col gap-4">
+            <p class="sr-only">Загружаем прогноз</p>
+            <div class="skeleton h-36 rounded-3xl" aria-hidden="true" />
+            <div class="grid grid-cols-3 gap-2" aria-hidden="true">
+              <div v-for="item in 6" :key="item" class="skeleton h-16 rounded-2xl" />
+            </div>
+            <div class="skeleton h-44 rounded-3xl" aria-hidden="true" />
           </div>
+
           <div
-            class="h-44 animate-pulse rounded-3xl bg-[var(--glass)] motion-reduce:animate-none"
-            aria-hidden="true"
-          />
-        </div>
-
-        <div
-          v-else-if="forecastFailed && !weather"
-          class="rounded-3xl border border-[var(--line)] bg-[var(--glass)] p-5 backdrop-blur-md"
-        >
-          <p class="text-lg font-medium">Прогноз не загрузился</p>
-          <p class="mt-1 text-sm text-[var(--muted)]">{{ FORECAST_ERROR }}</p>
-          <button
-            type="button"
-            class="mt-4 rounded-full bg-[var(--fill)] px-4 py-2 text-sm font-medium text-[var(--fill-ink)]"
-            @click="reload"
+            v-else-if="forecastFailed && !weather"
+            key="error"
+            class="rounded-3xl border border-[var(--line)] bg-[var(--glass)] p-5 backdrop-blur-md"
           >
-            Повторить
-          </button>
-        </div>
-
-        <template v-else-if="weather && place">
-          <WeatherTemperature
-            :place="place"
-            :current="weather.current"
-            :tomorrow="weather.daily[1]"
-            :unit="unit"
-            :refreshing="refreshing"
-          />
-          <WeatherDetails :current="weather.current" />
-          <WeatherForecast
-            :hourly="weather.hourly"
-            :daily="weather.daily"
-            :unit="unit"
-            :current-time="weather.current.time"
-          />
-          <p v-if="forecastFailed" class="text-sm">
-            {{ FORECAST_ERROR }}
-            <button type="button" class="ml-2 underline underline-offset-2" @click="reload">
+            <p class="text-lg font-medium">Прогноз не загрузился</p>
+            <p class="mt-1 text-sm text-[var(--muted)]">{{ FORECAST_ERROR }}</p>
+            <button
+              type="button"
+              class="mt-4 rounded-full bg-[var(--fill)] px-4 py-2 text-sm font-medium text-[var(--fill-ink)]"
+              @click="reload"
+            >
               Повторить
             </button>
-          </p>
-        </template>
+          </div>
+
+          <div
+            v-else-if="weather && place"
+            key="weather"
+            class="weather-panel flex flex-col gap-8"
+            :data-refreshing="refreshing || undefined"
+          >
+            <WeatherTemperature
+              :place="place"
+              :current="weather.current"
+              :tomorrow="weather.daily[1]"
+              :unit="unit"
+              :refreshing="refreshing"
+            />
+            <WeatherDetails :current="weather.current" />
+            <WeatherForecast
+              :hourly="weather.hourly"
+              :daily="weather.daily"
+              :unit="unit"
+              :current-time="weather.current.time"
+            />
+            <p v-if="forecastFailed" class="text-sm">
+              {{ FORECAST_ERROR }}
+              <button type="button" class="ml-2 underline underline-offset-2" @click="reload">
+                Повторить
+              </button>
+            </p>
+          </div>
+        </Transition>
 
         <footer
           class="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pt-2 text-xs text-[var(--muted)]"
