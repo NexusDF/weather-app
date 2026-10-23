@@ -1,24 +1,28 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 import { ToggleGroupItem, ToggleGroupRoot, TooltipProvider } from 'reka-ui'
 import WeatherDetails from './WeatherDetails.vue'
 import WeatherForecast from './WeatherForecast.vue'
 import WeatherForm from './WeatherForm.vue'
+import WeatherSettings from './WeatherSettings.vue'
 import WeatherTemperature from './WeatherTemperature.vue'
-import { fetchForecast, MOSCOW_PLACE, reversePlace, sceneOf, searchCities } from '@/lib/weather'
+import { citySearchOptions, reversePlaceOptions, useForecast } from '@/lib/queries'
+import { REFRESH_KEY, readRefresh } from '@/lib/refresh'
+import { MOSCOW_PLACE, sceneOf } from '@/lib/weather'
 
 const PLACE_KEY = 'vue-weather:place'
 const UNIT_KEY = 'vue-weather:unit'
+const FORECAST_ERROR = 'Не удалось загрузить прогноз. Проверьте соединение и попробуйте ещё раз.'
 
 const place = ref(readStoredPlace())
 const weather = ref(null)
-const status = ref('idle')
-const errorMessage = ref('')
 const locating = ref(false)
 const locateError = ref('')
 const unit = ref(readUnit())
-
-let forecastController
+const refresh = ref(readRefresh())
+const queryClient = useQueryClient()
+const forecast = useForecast(place, refresh)
 
 const scene = computed(() => {
   if (weather.value) return sceneOf(weather.value.current.weatherCode, weather.value.current.isDay)
@@ -26,7 +30,25 @@ const scene = computed(() => {
   return hour >= 7 && hour < 19 ? 'clear-day' : 'clear-night'
 })
 
-const refreshing = computed(() => status.value === 'refreshing')
+const refreshing = computed(() => Boolean(weather.value) && forecast.isFetching.value)
+const initialLoading = computed(
+  () => Boolean(place.value) && !weather.value && forecast.isFetching.value,
+)
+const forecastFailed = computed(
+  () => Boolean(place.value) && forecast.isError.value && !forecast.isFetching.value,
+)
+
+watch(
+  () => forecast.data.value,
+  (value) => {
+    if (value) weather.value = value
+  },
+  { immediate: true },
+)
+
+watch(refresh, (value) => {
+  localStorage.setItem(REFRESH_KEY, value)
+})
 
 watch(
   place,
@@ -34,7 +56,6 @@ watch(
     document.title = value?.name ? `${value.name} — Погода` : 'Погода'
     if (!value) return
     localStorage.setItem(PLACE_KEY, JSON.stringify(value))
-    loadWeather(value)
   },
   { immediate: true },
 )
@@ -42,8 +63,8 @@ watch(
 onMounted(async () => {
   if (place.value) return
   try {
-    const [city] = await searchCities('Москва')
-    place.value = city ?? MOSCOW_PLACE
+    const cities = await queryClient.fetchQuery(citySearchOptions('Москва'))
+    place.value = cities[0] ?? MOSCOW_PLACE
   } catch {
     place.value = MOSCOW_PLACE
   }
@@ -79,26 +100,8 @@ function onUnitUpdate(value) {
   localStorage.setItem(UNIT_KEY, value)
 }
 
-async function loadWeather(target) {
-  forecastController?.abort()
-  const controller = new AbortController()
-  forecastController = controller
-  status.value = weather.value ? 'refreshing' : 'loading'
-  errorMessage.value = ''
-  try {
-    const next = await fetchForecast(target.latitude, target.longitude, controller.signal)
-    if (controller.signal.aborted) return
-    weather.value = next
-    status.value = 'ready'
-  } catch (error) {
-    if (error?.name === 'AbortError') return
-    errorMessage.value = 'Не удалось загрузить прогноз. Проверьте соединение и попробуйте ещё раз.'
-    status.value = 'error'
-  }
-}
-
 function reload() {
-  if (place.value) loadWeather(place.value)
+  forecast.refetch()
 }
 
 function useMyLocation() {
@@ -112,7 +115,9 @@ function useMyLocation() {
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       try {
-        place.value = await reversePlace(position.coords.latitude, position.coords.longitude)
+        place.value = await queryClient.fetchQuery(
+          reversePlaceOptions(position.coords.latitude, position.coords.longitude),
+        )
       } catch {
         place.value = {
           id: `geo:${position.coords.latitude.toFixed(3)},${position.coords.longitude.toFixed(3)}`,
@@ -143,27 +148,32 @@ function useMyLocation() {
     <div class="scene min-h-dvh" :data-scene="scene">
       <div class="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-8 px-4 py-6 sm:py-10">
         <header class="flex items-center justify-between gap-3">
-          <p class="text-xs tracking-[0.22em] text-[var(--muted)] uppercase">DAlina Погода</p>
-          <ToggleGroupRoot
-            :model-value="unit"
-            type="single"
-            class="flex rounded-full border border-[var(--line)] bg-[var(--glass)] p-1 backdrop-blur-md"
-            aria-label="Единица температуры"
-            @update:model-value="onUnitUpdate"
-          >
-            <ToggleGroupItem
-              value="celsius"
-              class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
+          <p class="min-w-0 text-xs tracking-[0.22em] text-[var(--muted)] uppercase">
+            DAlina Погода
+          </p>
+          <div class="flex shrink-0 items-center gap-2">
+            <ToggleGroupRoot
+              :model-value="unit"
+              type="single"
+              class="flex rounded-full border border-[var(--line)] bg-[var(--glass)] p-1 backdrop-blur-md"
+              aria-label="Единица температуры"
+              @update:model-value="onUnitUpdate"
             >
-              °C
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="fahrenheit"
-              class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
-            >
-              °F
-            </ToggleGroupItem>
-          </ToggleGroupRoot>
+              <ToggleGroupItem
+                value="celsius"
+                class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
+              >
+                °C
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="fahrenheit"
+                class="rounded-full px-3 py-1 text-sm text-[var(--muted)] data-[state=on]:bg-[var(--fill)] data-[state=on]:text-[var(--fill-ink)]"
+              >
+                °F
+              </ToggleGroupItem>
+            </ToggleGroupRoot>
+            <WeatherSettings v-model="refresh" />
+          </div>
         </header>
 
         <WeatherForm
@@ -173,7 +183,7 @@ function useMyLocation() {
           @locate="useMyLocation"
         />
 
-        <div v-if="status === 'loading' && !weather" class="flex flex-col gap-4">
+        <div v-if="initialLoading" class="flex flex-col gap-4">
           <p class="sr-only">Загружаем прогноз</p>
           <div
             class="h-36 animate-pulse rounded-3xl bg-[var(--glass)] motion-reduce:animate-none"
@@ -193,11 +203,11 @@ function useMyLocation() {
         </div>
 
         <div
-          v-else-if="status === 'error' && !weather"
+          v-else-if="forecastFailed && !weather"
           class="rounded-3xl border border-[var(--line)] bg-[var(--glass)] p-5 backdrop-blur-md"
         >
           <p class="text-lg font-medium">Прогноз не загрузился</p>
-          <p class="mt-1 text-sm text-[var(--muted)]">{{ errorMessage }}</p>
+          <p class="mt-1 text-sm text-[var(--muted)]">{{ FORECAST_ERROR }}</p>
           <button
             type="button"
             class="mt-4 rounded-full bg-[var(--fill)] px-4 py-2 text-sm font-medium text-[var(--fill-ink)]"
@@ -221,8 +231,8 @@ function useMyLocation() {
             :unit="unit"
             :current-time="weather.current.time"
           />
-          <p v-if="status === 'error'" class="text-sm">
-            {{ errorMessage }}
+          <p v-if="forecastFailed" class="text-sm">
+            {{ FORECAST_ERROR }}
             <button type="button" class="ml-2 underline underline-offset-2" @click="reload">
               Повторить
             </button>

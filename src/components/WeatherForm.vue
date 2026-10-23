@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import {
   ComboboxAnchor,
   ComboboxContent,
@@ -11,7 +11,8 @@ import {
   ComboboxRoot,
   ComboboxViewport,
 } from 'reka-ui'
-import { placeLabel, placeSubtitle, searchCities } from '@/lib/weather'
+import { useCitySearch } from '@/lib/queries'
+import { placeLabel, placeSubtitle } from '@/lib/weather'
 
 const props = defineProps({
   modelValue: {
@@ -32,14 +33,12 @@ const emit = defineEmits(['update:modelValue', 'locate'])
 
 const open = ref(false)
 const query = ref('')
-const cities = ref([])
-const searching = ref(false)
-const searchError = ref('')
+const submittedTerm = ref('')
+const waiting = ref(false)
 const selectedCity = ref(props.modelValue)
+const cityQuery = useCitySearch(submittedTerm)
 
 let timer = 0
-let controller
-let activeTerm = ''
 
 watch(
   () => props.modelValue,
@@ -64,53 +63,51 @@ function displayValue(value) {
   return placeLabel(value)
 }
 
-function cancelSearch() {
-  window.clearTimeout(timer)
-  controller?.abort()
-  activeTerm = ''
-  searching.value = false
-  searchError.value = ''
-  cities.value = []
+const cities = computed(() => {
+  if (waiting.value || submittedTerm.value.length < 2) return []
+  return cityQuery.data.value ?? []
+})
+
+const searching = computed(() => {
+  if (!canSearch(query.value)) return false
+  if (waiting.value || submittedTerm.value !== query.value.trim()) return true
+  return cityQuery.isFetching.value || cityQuery.isPending.value
+})
+
+const searchError = computed(() => {
+  if (waiting.value || submittedTerm.value !== query.value.trim()) return ''
+  if (!cityQuery.isError.value || cityQuery.isFetching.value) return ''
+  return 'Не удалось выполнить поиск'
+})
+
+function canSearch(value) {
+  const term = value.trim()
+  const label = selectedCity.value ? placeLabel(selectedCity.value) : ''
+  return term.length >= 2 && term !== label
 }
 
 watch(query, (value) => {
-  const term = value.trim()
-  const label = selectedCity.value ? placeLabel(selectedCity.value) : ''
   window.clearTimeout(timer)
-  controller?.abort()
-
-  if (!term || term.length < 2 || term === label) {
-    cancelSearch()
+  const term = value.trim()
+  if (!canSearch(value)) {
+    waiting.value = false
+    submittedTerm.value = ''
     open.value = false
     return
   }
 
-  cities.value = []
-  searchError.value = ''
-  searching.value = true
+  waiting.value = true
+  submittedTerm.value = ''
   open.value = true
   timer = window.setTimeout(() => {
-    search(term)
+    submittedTerm.value = term
+    waiting.value = false
   }, 280)
 })
 
-async function search(term) {
-  const current = new AbortController()
-  controller = current
-  activeTerm = term
-  searching.value = true
-  try {
-    const results = await searchCities(term, current.signal)
-    if (activeTerm !== term) return
-    cities.value = results
-    searching.value = false
-  } catch (error) {
-    if (error?.name === 'AbortError' || activeTerm !== term) return
-    cities.value = []
-    searchError.value = 'Не удалось выполнить поиск'
-    searching.value = false
-  }
-}
+onUnmounted(() => {
+  window.clearTimeout(timer)
+})
 </script>
 
 <template>
