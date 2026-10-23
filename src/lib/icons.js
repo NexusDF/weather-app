@@ -8,6 +8,7 @@ import cloudSnow from '@iconify-icons/lucide/cloud-snow'
 import cloudSun from '@iconify-icons/lucide/cloud-sun'
 import droplets from '@iconify-icons/lucide/droplets'
 import gauge from '@iconify-icons/lucide/gauge'
+import heart from '@iconify-icons/lucide/heart'
 import loaderCircle from '@iconify-icons/lucide/loader-circle'
 import locate from '@iconify-icons/lucide/locate'
 import moon from '@iconify-icons/lucide/moon'
@@ -29,6 +30,7 @@ const icons = {
   'lucide:cloud-sun': cloudSun,
   'lucide:droplets': droplets,
   'lucide:gauge': gauge,
+  'lucide:heart': heart,
   'lucide:loader-circle': loaderCircle,
   'lucide:locate': locate,
   'lucide:moon': moon,

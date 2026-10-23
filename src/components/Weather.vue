@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { Icon } from '@iconify/vue/offline'
 import { useQueryClient } from '@tanstack/vue-query'
 import { ToggleGroupItem, ToggleGroupRoot, TooltipProvider } from 'reka-ui'
 import WeatherDetails from './WeatherDetails.vue'
@@ -239,16 +240,24 @@ function useMyLocation() {
           </p>
         </template>
 
-        <footer class="mt-auto pt-2 text-xs text-[var(--muted)]">
-          Прогноз
-          <a
-            class="underline underline-offset-2"
-            href="https://open-meteo.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open-Meteo
-          </a>
+        <footer
+          class="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pt-2 text-xs text-[var(--muted)]"
+        >
+          <p>
+            Прогноз
+            <a
+              class="underline underline-offset-2"
+              href="https://open-meteo.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open-Meteo
+            </a>
+          </p>
+          <p class="ml-auto flex items-center gap-1.5">
+            <Icon icon="lucide:heart" class="size-3.5 shrink-0 fill-current" aria-hidden="true" />
+            Люблю тебя Алиночка
+          </p>
         </footer>
       </div>
     </div>
