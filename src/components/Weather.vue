@@ -143,7 +143,7 @@ function useMyLocation() {
     <div class="scene min-h-dvh" :data-scene="scene">
       <div class="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-8 px-4 py-6 sm:py-10">
         <header class="flex items-center justify-between gap-3">
-          <p class="text-xs tracking-[0.22em] text-[var(--muted)] uppercase">Погода</p>
+          <p class="text-xs tracking-[0.22em] text-[var(--muted)] uppercase">DAlina Погода</p>
           <ToggleGroupRoot
             :model-value="unit"
             type="single"
